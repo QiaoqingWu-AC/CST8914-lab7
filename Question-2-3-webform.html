@@ -28,18 +28,22 @@
     <body>
         <h1>Feedback form</h1>
     <form>
-      <!-- Fix: Grouping the forms -->
+      <!-- Fix: Grouping all the forms into a fieldset -->
       <fieldset>
         <div class="control">
           <!-- Fix: labeling the form; Identifying required fields in text -->
-          <label for="name">Full name <span class="required">*(Required)</span></label><input id="name" name="name" type="text" />
+          <label for="name">Full name <span class="required">*(Required)</span></label>
+          <input id="name" name="name" type="text" aria-required="true" />
         </div>
         <div class="control">
           <!-- Fix: labeling the form -->
           <label for="biography">Biography</label><textarea id="biography" name="biography" type="text"></textarea>
           <span>Include examples on your skills in JavaScript.</span>
         </div>
-        <div>Gender</div>
+
+        <!-- Grouping ratio inputs inside a fieldset -->
+        <fieldset>
+          <div>Gender</div>
         <div class="control">
           <input id="gender_male" name="gender" type="radio" value="male" />
           <!-- Fix: labeling the form -->
@@ -50,6 +54,8 @@
           <!-- Fix: labeling the form -->
           <label for="gender_female">Female</label>
         </div>
+        </fieldset>
+        
       </fieldset>
 
       <div class="control">
