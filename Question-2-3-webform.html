@@ -111,40 +111,40 @@
       };
 
       validateInput = function (input, message) {
-      var $elementToDescribe, $error, $errorContainer, $fieldset, $input, $referencedElement, value;
-      $input = $('[name="' + input + '"]');
+        var $elementToDescribe, $error, $errorContainer, $fieldset, $input, $referencedElement, value;
+        $input = $('[name="' + input + '"]');
 
-      // Validation logic for different input types
-      if (($input.is(':radio') && !$('[name="' + input + '"]:checked').length) ||
-          ($input.is(':checkbox') && !$input.is(':checked')) ||
-          (!$input.is(':radio') && !$input.is(':checkbox') && $input.val().trim() === "")) {
+        // Validation logic for different input types
+        if (($input.is(':radio') && !$('[name="' + input + '"]:checked').length) ||
+            ($input.is(':checkbox') && !$input.is(':checked')) ||
+            (!$input.is(':radio') && !$input.is(':checkbox') && $input.val().trim() === "")) {
 
-        // Create error container only if an error is found
-        if ($('fieldset.errors').length === 0) {
-          $('form').prepend('<fieldset class="errors"><legend>Errors</legend><ul></ul></fieldset>');
+          // Create error container only if an error is found
+          if ($('fieldset.errors').length === 0) {
+            $('form').prepend('<fieldset class="errors"><legend>Errors</legend><ul></ul></fieldset>');
+          }
+          $errorContainer = $('fieldset.errors ul');
+
+          // If the input is invalid, create an error message
+          $referencedElement = $input.is(':radio') ? $input.filter(':first') : $input;
+          $error = $('<li><a href="#' + $referencedElement.attr('id') + '">' + message + '</a></li>');
+
+          // Add click handler to focus the input when the error link is clicked
+          $error.find('a').click(function (e) {
+            $referencedElement.focus();
+            e.preventDefault();
+          });
+
+          $errorContainer.append($error);
+          $input.attr('aria-describedby', input + '_description');
+
+          return false;
+        } else {
+          // Clear aria-describedby if input is valid
+          $input.removeAttr('aria-describedby');
+          return true;
         }
-        $errorContainer = $('fieldset.errors ul');
-
-        // If the input is invalid, create an error message
-        $referencedElement = $input.is(':radio') ? $input.filter(':first') : $input;
-        $error = $('<li><a href="#' + $referencedElement.attr('id') + '">' + message + '</a></li>');
-
-        // Add click handler to focus the input when the error link is clicked
-        $error.find('a').click(function (e) {
-          $referencedElement.focus();
-          e.preventDefault();
-        });
-
-        $errorContainer.append($error);
-        $input.attr('aria-describedby', input + '_description');
-
-        return false;
-      } else {
-        // Clear aria-describedby if input is valid
-        $input.removeAttr('aria-describedby');
-        return true;
-      }
-    };
+      };
 
       // Fix: Alert "All inputs are valid" appears only when form is filled
       $(document).ready(function () {
