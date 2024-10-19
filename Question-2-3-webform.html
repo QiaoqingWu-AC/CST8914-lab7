@@ -93,10 +93,10 @@
           return null;
         } else {
           return decodeURI(results[1]) || null;
-      }
-    };
+        }
+      };
 
-    validateInput = function validateInput(input, message) {
+      validateInput = function validateInput(input, message) {
       var $elementToDescribe, $error, $errorContainer, $fieldset, $input, $referencedElement, value;
       $input = $('[name="' + input + '"]');
 
@@ -117,20 +117,21 @@
           $elementToDescribe = $input;
           $referencedElement = $input;
         }
-    // R.G. hint: fix next line ;)
-        $error = $('<a>' + message + '</a>');
+
+        // Fix: Create a list of links for the errors that points to the form field's ID
+        $error = $('<li><a href="#' + $referencedElement.attr('id') + '">' + message + '</a></li>');
 
         $error.click(function (e) {
-          // If we rely on the link's href pointing to the input's ID, it doesn't trigger forms mode in screen readers
           $referencedElement.focus();
           return e.preventDefault();
         });
-        $elementToDescribe.attr('aria-describedby', input + '_description');
-        $errorContainer.append('<li>').find('li:last').append($error);
 
+        $elementToDescribe.attr('aria-describedby', input + '_description');
+        $errorContainer.append($error);
+
+        // Fix: Move focus to the errors area
         if ($(':not(form):focus').length === 0) {
-          // See https://stackoverflow.com/questions/46134247/jquery-setting-focus-doesnt-work-in-ie11/
-        
+          $('fieldset.errors').focus();
         }
       } else {
         if ($input.is(':checkbox')) {
@@ -145,20 +146,28 @@
       }
     };
 
-    $(document).ready(function () {
-      if ($.urlParam('validate')) {
-        validateInput('name', 'Please enter your name!');
-        validateInput('biography', 'Please tell us something about your history!');
-        validateInput('gender', 'Please tell us your gender!');
-        validateInput('accept_agbs', 'You must accept our terms and conditions!');
+      // Fix: Alert "All inputs are valid" appears only when form is filled
+      $(document).ready(function () {
+        // Add a submit event handler for the form
+        $('form').on('submit', function (e) {
+          e.preventDefault();
 
-        if ($('.error').length === 0) {
-          return alert('All inputs are valid.');
-        }
-      }
-    });
+          // clear previous errors
+          $('fieldset.errors').remove();
+
+          validateInput('name', 'Please enter your name!');
+          validateInput('biography', 'Please tell us something about your history!');
+          validateInput('gender', 'Please tell us your gender!');
+          validateInput('accept_agbs', 'You must accept our terms and conditions!');
+
+          // if no error exist, display this valid message
+          if ($('fieldset.errors ul li').length === 0) {
+            return alert('All inputs are valid.');
+          }
+        });
+      });
     }).call(void 0);
-    
+
   </script>
         
 </body>
