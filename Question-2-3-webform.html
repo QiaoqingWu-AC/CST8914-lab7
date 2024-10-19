@@ -25,6 +25,20 @@
     fieldset ul {
       margin: 0;
     }
+
+    /* Add a style to hide the inline instruction on the web page */
+    .visually-hidden {
+      position: absolute;
+      position: absolute !important;
+      width: 1px !important;
+      height: 1px !important;
+      padding: 0 !important;
+      margin: -1px !important;
+      overflow: hidden !important;
+      clip: rect(0,0,0,0) !important;
+      white-space: nowrap !important;
+      border: 0 !important;
+    }
   </style>
 </head>
 
@@ -38,13 +52,13 @@
         <label for="name">Full name <span class="required">*(Required)</span></label>
         <input id="name" name="name" type="text" aria-required="true" aria-describedby="name-instruction" />
         <!-- Fix: Providing inline instruction -->
-        <span id="name-instruction">Enter your full name in this required field.</span>
+        <span id="name-instruction" class="visually-hidden">Enter your full name in this required field.</span>
       </div>
       <div class="control">
         <!-- Fix: labeling the form and providing inline instructions -->
         <label for="biography">Biography</label>
         <textarea id="biography" name="biography" type="text" aria-describedby="bio-instruction"></textarea>
-        <span id="bio-instruction">Include examples on your skills in JavaScript.</span>
+        <span id="bio-instruction" class="visually-hidden">Include examples on your skills in JavaScript.</span>
       </div>
 
       <!-- Grouping ratio inputs inside a fieldset -->
@@ -61,7 +75,7 @@
           <label for="gender_female">Female</label>
         </div>
         <!-- Fix: Providing inline instruction -->
-        <span id="gender-instruction">Select your gender.</span>
+        <span id="gender-instruction" class="visually-hidden">Select your gender.</span>
       </fieldset>
       
     </fieldset>
@@ -70,7 +84,7 @@
       <input id="accept_agbs" name="accept_agbs" type="checkbox" value="1" aria-describedby="term-instruction" />
       <!-- Fix: labeling the checkbox and providing inline instructions -->
       <label for="accept_agbs">I accept the terms and conditions</label>
-      <span id="term-instruction">You must accept the terms and conditions and check the box.</span>
+      <span id="term-instruction" class="visually-hidden">You must accept the terms and conditions and check the box.</span>
     </div>
     <div class="control">
       <input name="validate" type="hidden" value="1" /><input type="submit" value="Register" />
@@ -96,53 +110,39 @@
         }
       };
 
-      validateInput = function validateInput(input, message) {
+      validateInput = function (input, message) {
       var $elementToDescribe, $error, $errorContainer, $fieldset, $input, $referencedElement, value;
       $input = $('[name="' + input + '"]');
 
-      if ((value = $.urlParam(input)) === null) {
+      // Validation logic for different input types
+      if (($input.is(':radio') && !$('[name="' + input + '"]:checked').length) ||
+          ($input.is(':checkbox') && !$input.is(':checked')) ||
+          (!$input.is(':radio') && !$input.is(':checkbox') && $input.val().trim() === "")) {
+
+        // Create error container only if an error is found
         if ($('fieldset.errors').length === 0) {
           $('form').prepend('<fieldset class="errors"><legend>Errors</legend><ul></ul></fieldset>');
         }
-
-        $referencedElement = null;
-        $elementToDescribe = null;
         $errorContainer = $('fieldset.errors ul');
 
-        if ($input.is(':radio')) {
-          $fieldset = $input.closest('fieldset');
-          $elementToDescribe = $fieldset;
-          $referencedElement = $input.filter(':first');
-        } else {
-          $elementToDescribe = $input;
-          $referencedElement = $input;
-        }
-
-        // Fix: Create a list of links for the errors that points to the form field's ID
+        // If the input is invalid, create an error message
+        $referencedElement = $input.is(':radio') ? $input.filter(':first') : $input;
         $error = $('<li><a href="#' + $referencedElement.attr('id') + '">' + message + '</a></li>');
 
-        $error.click(function (e) {
+        // Add click handler to focus the input when the error link is clicked
+        $error.find('a').click(function (e) {
           $referencedElement.focus();
-          return e.preventDefault();
+          e.preventDefault();
         });
 
-        $elementToDescribe.attr('aria-describedby', input + '_description');
         $errorContainer.append($error);
+        $input.attr('aria-describedby', input + '_description');
 
-        // Fix: Move focus to the errors area
-        if ($(':not(form):focus').length === 0) {
-          $('fieldset.errors').focus();
-        }
+        return false;
       } else {
-        if ($input.is(':checkbox')) {
-          $input.attr('checked', true);
-        }
-
-        if ($input.is(':radio')) {
-          return $input.filter('[value="' + value + '"]').attr('checked', true);
-        } else {
-          return $input.val(value);
-        }
+        // Clear aria-describedby if input is valid
+        $input.removeAttr('aria-describedby');
+        return true;
       }
     };
 
@@ -155,14 +155,27 @@
           // clear previous errors
           $('fieldset.errors').remove();
 
-          validateInput('name', 'Please enter your name!');
-          validateInput('biography', 'Please tell us something about your history!');
-          validateInput('gender', 'Please tell us your gender!');
-          validateInput('accept_agbs', 'You must accept our terms and conditions!');
+          var isValid = true;
+          
+          // validate each form input
+          if (!validateInput('name', 'Please enter your name!')) {
+            isValid = false;
+          }
+          if (!validateInput('biography', 'Please tell us something about your history!')) {
+            isValid = false;
+          }
+          if (!validateInput('gender', 'Please tell us your gender!')) {
+            isValid = false;
+          }
+          if (!validateInput('accept_agbs', 'You must accept our terms and conditions!')) {
+            isValid = false;
+          }
 
-          // if no error exist, display this valid message
-          if ($('fieldset.errors ul li').length === 0) {
+          // if no error exist, display this valid message, otherwise focus on the errors area
+          if (isValid) {
             return alert('All inputs are valid.');
+          } else {
+            $('fieldset.errors').focus();
           }
         });
       });
